@@ -3,325 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tank War: Total Combat</title>
+    <title>Tank War Pro - Fixed Controls</title>
     <style>
-        :root { --p1-color: #2ecc71; --p2-color: #e67e22; --bg-color: #1a1a1d; --panel-color: rgba(30, 30, 35, 0.8); }
-        body { margin: 0; background: var(--bg-color); color: #fff; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+        :root { --p1-color: #2ecc71; --p2-color: #e67e22; }
+        body { margin: 0; background: #111; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
         
-        /* Neon UI Panel */
-        #game-ui { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-around; padding: 10px; background: var(--panel-color); border: 1px solid #333; border-radius: 12px; backdrop-filter: blur(5px); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .stat-box { text-align: center; width: 45%; }
-        .stat-label { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 16px; font-weight: bold; margin: 2px 0; }
-        .p1-val { color: var(--p1-color); text-shadow: 0 0 10px var(--p1-color); }
-        .p2-val { color: var(--p2-color); text-shadow: 0 0 10px var(--p2-color); }
-        .hp-bar { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 4px; border: 1px solid #444; }
-        .hp-fill { height: 100%; transition: width 0.3s ease; }
-        .ammo-dots { display: flex; justify-content: center; gap: 3px; margin-top: 5px; }
-        .ammo-dot { width: 6px; height: 6px; background: #555; border-radius: 50%; }
-        .ammo-dot.active { background: #f1c40f; box-shadow: 0 0 5px #f1c40f; }
+        #stage { position: relative; width: 100vw; height: 60vh; background: #222; border-bottom: 3px solid #444; overflow: hidden; }
+        
+        /* Tank Styles */
+        .tank { position: absolute; width: 40px; height: 40px; transition: transform 0.1s linear; }
+        .tank-body { width: 100%; height: 100%; border-radius: 5px; border: 2px solid #000; }
+        .barrel { width: 6px; height: 20px; background: #000; position: absolute; left: 17px; top: -15px; border-radius: 2px; }
+        
+        #p1 .tank-body { background: var(--p1-color); }
+        #p2 .tank-body { background: var(--p2-color); }
+        #p2 .barrel { top: 35px; }
 
-        /* Big Dark Map */
-        #stage { position: relative; width: 100vw; height: 100vh; background: #222; overflow: hidden; }
-        .floor-grid { position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background-image: linear-gradient(#2a2a2a 1px, transparent 1px), linear-gradient(90deg, #2a2a2a 1px, transparent 1px); background-size: 50px 50px; transform: rotateX(60deg); opacity: 0.3; }
-        
-        /* Advanced 3D-Look Tank */
-        .tank { position: absolute; width: 40px; height: 40px; transform-origin: center; transition: transform 0.1s linear, left 0.1s linear, top 0.1s linear; z-index: 10; }
-        .tank-body { width: 100%; height: 100%; border-radius: 6px; position: relative; background-size: cover; border: 2px solid #111; box-shadow: 0 8px 15px rgba(0,0,0,0.6); overflow: hidden; }
-        .treads { position: absolute; width: 120%; height: 100%; left: -10%; top:0; display: flex; justify-content: space-between; z-index: -1; }
-        .tread-belt { width: 8px; height: 100%; background: #222; background-image: linear-gradient(#111 2px, transparent 2px); background-size: 100% 6px; }
-        .turret { position: absolute; width: 20px; height: 20px; background: inherit; border: 2px solid #111; border-radius: 50%; left: 10px; top: 10px; z-index: 2; box-shadow: 0 4px 5px rgba(0,0,0,0.5); }
-        .barrel { width: 6px; height: 26px; position: absolute; left: 7px; top: -20px; background: #111; border-radius: 2px; transform-origin: bottom; transition: transform 0.1s; }
-        
-        /* P1 Green Camo */
-        #p1 .tank-body { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%232ecc71"/><path d="M0 0h10v10H0zM20 10h10v10H20zM10 30h10v10H10zM30 20h10v10H30z" fill="%2327ae60" opacity="0.5"/></svg>'); }
-        /* P2 Orange Camo */
-        #p2 .tank-body { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e67e22"/><path d="M0 10h10v10H0zM20 0h10v10H20zM10 20h10v10H10zM30 30h10v10H30z" fill="%23d35400" opacity="0.5"/></svg>'); }
-        
-        #p1 .barrel { transform: rotate(0deg); } /* Points Up */
-        #p2 .barrel { transform: rotate(180deg); top: 12px; } /* Points Down */
+        /* UI */
+        #ui { display: flex; justify-content: space-around; padding: 10px; background: #222; font-weight: bold; }
+        .hp-bar { width: 100px; height: 8px; background: #444; margin-top: 5px; }
+        .hp-fill { height: 100%; transition: width 0.3s; }
 
-        .recoil { animation: recoilAnim 0.15s ease; }
-        @keyframes recoilAnim { 0% { transform: translateY(0); } 50% { transform: translateY(5px); } 100% { transform: translateY(0); } }
-
-        /* Effects */
-        .wall { position: absolute; background: #333; border: 2px solid #111; border-radius: 4px; box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 5px 5px 15px rgba(0,0,0,0.3); }
-        .bullet { position: absolute; width: 4px; height: 10px; border-radius: 2px; background: #fff; box-shadow: 0 0 10px #f1c40f, 0 0 20px #f1c40f; z-index: 5; }
-        .explosion { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #fff 10%, #f1c40f 30%, #e67e22 60%, transparent 80%); border-radius: 50%; animation: boom 0.4s ease-out forwards; pointer-events: none; z-index: 20; }
-        @keyframes boom { 0% { transform: scale(0.1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-        #reload-msg { position: absolute; top: 50%; width: 100%; text-align: center; color: #e74c3c; font-size: 20px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 10px #e74c3c; display: none; z-index: 90; }
-
-        /* Modern Mobile Controls */
-        #controls { position: absolute; bottom: 20px; left: 10px; right: 10px; height: 160px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; z-index: 110; pointer-events: none; }
-        .ctrl-group { position: relative; width: 100%; height: 100%; pointer-events: auto; }
-        .d-pad { position: absolute; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
-        .d-btn { position: absolute; width: 35px; height: 35px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.5); font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        .d-btn:active { background: rgba(255,255,255,0.3); color: #fff; transform: scale(1.1); }
+        /* New Controls Layout - Both at Bottom */
+        #all-controls { display: grid; grid-template-columns: 1fr 1fr; height: 35vh; background: #1a1a1a; padding: 10px; gap: 10px; }
+        .ctrl-panel { background: #252525; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #333; }
+        .grid-ctrl { display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px; gap: 5px; }
+        .btn { background: #444; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 18px; }
+        .btn:active { background: #666; transform: scale(0.9); }
+        .fire-btn { grid-column: 2; background: #c0392b !important; }
         
-        /* P1 Controls (Left Side) */
-        #c1 .d-pad { left: 10px; bottom: 10px; }
-        #c1 .up { top: 0; left: 32px; } #c1 .down { bottom: 0; left: 32px; }
-        #c1 .left { top: 32px; left: 0; } #c1 .right { top: 32px; right: 0; }
-        #c1 .fire-btn { position: absolute; right: 10px; bottom: 10px; width: 60px; height: 60px; background: rgba(46, 204, 113, 0.2); border: 2px solid var(--p1-color); border-radius: 50%; box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); color: #fff; font-size: 24px; }
-        
-        /* P2 Controls (Right Side) */
-        #c2 .d-pad { right: 10px; top: 10px; }
-        #c2 .up { top: 0; left: 32px; transform: rotate(180deg); } #c2 .down { bottom: 0; left: 32px; transform: rotate(180deg); }
-        #c2 .left { top: 32px; left: 0; transform: rotate(180deg); } #c2 .right { top: 32px; right: 0; transform: rotate(180deg); }
-        #c2 .fire-btn { position: absolute; left: 10px; top: 10px; width: 60px; height: 60px; background: rgba(230, 126, 34, 0.2); border: 2px solid var(--p2-color); border-radius: 50%; box-shadow: 0 0 15px rgba(230, 126, 34, 0.5); color: #fff; font-size: 24px; transform: rotate(180deg); }
-        
-        .fire-btn:active { transform: scale(0.9) !important; background: rgba(255,255,255,0.3) !important; }
-
-        /* Fancy Win Screen */
-        #win-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(10px); animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #win-text { font-size: 40px; font-weight: 900; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 20px; animation: glow 1s ease-in-out infinite alternate; text-align: center; line-height: 1.2; }
-        @keyframes glow { from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e74c3c; } to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6; } }
-        #restart-btn { padding: 15px 40px; background: transparent; border: 2px solid #fff; color: #fff; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; border-radius: 30px; transition: 0.3s; }
-        #restart-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+        .bullet { position: absolute; width: 6px; height: 6px; background: yellow; border-radius: 50%; box-shadow: 0 0 10px orange; }
     </style>
 </head>
 <body>
 
-    <div id="game-ui">
-        <div class="stat-box">
-            <div class="stat-label">Player 1</div>
-            <div class="stat-value p1-val">GREEN TEAM</div>
-            <div class="hp-bar"><div id="hp1" class="hp-fill" style="width: 100%; background: var(--p1-color);"></div></div>
-            <div id="ammo1-dots" class="ammo-dots"></div>
-        </div>
-        <div class="stat-box" style="transform: rotate(180deg);">
-            <div class="stat-label">Player 2</div>
-            <div class="stat-value p2-val">ORANGE TEAM</div>
-            <div class="hp-bar"><div id="hp2" class="hp-fill" style="width: 100%; background: var(--p2-color);"></div></div>
-            <div id="ammo2-dots" class="ammo-dots"></div>
-        </div>
+    <div id="ui">
+        <div>P1: <div class="hp-bar"><div id="hp1" class="hp-fill" style="width:100%; background:var(--p1-color)"></div></div></div>
+        <div>P2: <div class="hp-bar"><div id="hp2" class="hp-fill" style="width:100%; background:var(--p2-color)"></div></div></div>
     </div>
 
     <div id="stage">
-        <div class="floor-grid"></div>
-        <div id="reload-msg">RELOADING SYSTEM...</div>
-        <div id="p1" class="tank" style="left: 100px; bottom: 80px; transform: rotate(0deg);">
-            <div class="treads"><div class="tread-belt"></div><div class="tread-belt"></div></div>
-            <div class="tank-body"><div class="turret"><div class="barrel"></div></div></div>
-        </div>
-        <div id="p2" class="tank" style="left: 100px; top: 120px; transform: rotate(180deg);">
-            <div class="treads"><div class="tread-belt"></div><div class="tread-belt"></div></div>
-            <div class="tank-body"><div class="turret"><div class="barrel"></div></div></div>
-        </div>
+        <div id="p1" class="tank" style="left: 20%; bottom: 20px;"><div class="barrel"></div><div class="tank-body"></div></div>
+        <div id="p2" class="tank" style="left: 70%; top: 20px;"><div class="barrel"></div><div class="tank-body"></div></div>
     </div>
 
-    <div id="controls">
-        <div id="c1" class="ctrl-group">
-            <div class="d-pad">
-                <div class="d-btn up" onpointerdown="startMove('p1','U')" onpointerup="stopMove('p1')">▲</div>
-                <div class="d-btn down" onpointerdown="startMove('p1','D')" onpointerup="stopMove('p1')">▼</div>
-                <div class="d-btn left" onpointerdown="startMove('p1','L')" onpointerup="stopMove('p1')">◀</div>
-                <div class="d-btn right" onpointerdown="startMove('p1','R')" onpointerup="stopMove('p1')">▶</div>
+    <div id="all-controls">
+        <div class="ctrl-panel">
+            <span style="color:var(--p1-color); font-size:12px; margin-bottom:5px;">PLAYER 1 (GREEN)</span>
+            <div class="grid-ctrl">
+                <button class="btn" onpointerdown="move('p1','L')">◀</button>
+                <button class="btn" onpointerdown="move('p1','U')">▲</button>
+                <button class="btn" onpointerdown="move('p1','R')">▶</button>
+                <div></div><button class="btn fire-btn" onpointerdown="shoot(1)">🔥</button><div></div>
+                <button style="grid-column: 2; grid-row: 2;" class="btn" onpointerdown="move('p1','D')">▼</button>
             </div>
-            <button class="fire-btn" onpointerdown="shoot(1)">🔥</button>
         </div>
-        <div id="c2" class="ctrl-group">
-            <div class="d-pad">
-                <div class="d-btn up" onpointerdown="startMove('p2','U')" onpointerup="stopMove('p2')">▲</div>
-                <div class="d-btn down" onpointerdown="startMove('p2','D')" onpointerup="stopMove('p2')">▼</div>
-                <div class="d-btn left" onpointerdown="startMove('p2','L')" onpointerup="stopMove('p2')">◀</div>
-                <div class="d-btn right" onpointerdown="startMove('p2','R')" onpointerup="stopMove('p2')">▶</div>
-            </div>
-            <button class="fire-btn" onpointerdown="shoot(2)">🔥</button>
-        </div>
-    </div>
 
-    <div id="win-screen">
-        <div id="win-text"></div>
-        <button id="restart-btn" onclick="location.reload()">PLAY AGAIN</button>
+        <div class="ctrl-panel">
+            <span style="color:var(--p2-color); font-size:12px; margin-bottom:5px;">PLAYER 2 (ORANGE)</span>
+            <div class="grid-ctrl">
+                <button class="btn" onpointerdown="move('p2','L')">◀</button>
+                <button class="btn" onpointerdown="move('p2','U')">▲</button>
+                <button class="btn" onpointerdown="move('p2','R')">▶</button>
+                <div></div><button class="btn fire-btn" onpointerdown="shoot(2)">🔥</button><div></div>
+                <button style="grid-column: 2; grid-row: 2;" class="btn" onpointerdown="move('p2','D')">▼</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const stage = document.getElementById('stage');
+        let p1X = 50, p1Y = window.innerHeight*0.4, p2X = 250, p2Y = 50;
         let hp1 = 100, hp2 = 100;
-        let ammo1 = 10, ammo2 = 10;
-        let isReloading1 = false, isReloading2 = false;
-        let p1Pos = { x: 100, y: window.innerHeight - 120, angle: 0 };
-        let p2Pos = { x: window.innerWidth - 140, y: 150, angle: 180 };
-        let bullets = [], walls = [], moveIntervals = {};
-        const TANK_SIZE = 40; const MOVE_SPEED = 6;
+        let bullets = [];
 
-        function vibe() { if('vibrate' in navigator) navigator.vibrate(30); }
-
-        function updateUI() {
-            document.getElementById('hp1').style.width = hp1 + '%';
-            document.getElementById('hp2').style.width = hp2 + '%';
-            updateAmmoDots(1, ammo1); updateAmmoDots(2, ammo2);
-        }
-
-        function updateAmmoDots(p, count) {
-            const container = document.getElementById(`ammo${p}-dots`);
-            container.innerHTML = '';
-            for(let i=0; i<10; i++) {
-                const dot = document.createElement('div');
-                dot.className = `ammo-dot ${i < count ? 'active' : ''}`;
-                container.appendChild(dot);
+        function move(p, dir) {
+            const step = 20;
+            if(p === 'p1') {
+                if(dir === 'L') p1X -= step; if(dir === 'R') p1X += step;
+                if(dir === 'U') p1Y -= step; if(dir === 'D') p1Y += step;
+                let el = document.getElementById('p1');
+                el.style.left = p1X + 'px'; el.style.top = p1Y + 'px';
+            } else {
+                if(dir === 'L') p2X -= step; if(dir === 'R') p2X += step;
+                if(dir === 'U') p2Y -= step; if(dir === 'D') p2Y += step;
+                let el = document.getElementById('p2');
+                el.style.left = p2X + 'px'; el.style.top = p2Y + 'px';
             }
         }
 
-        function createMap() {
-            const wallData = [
-                {x: 50, y: 250, w: 120, h: 15}, {x: window.innerWidth-170, y: 250, w: 120, h: 15},
-                {x: (window.innerWidth/2)-60, y: (window.innerHeight/2)-60, w: 120, h: 120},
-                {x: 100, y: window.innerHeight-300, w: 15, h: 120}, {x: window.innerWidth-115, y: 180, w: 15, h: 120}
-            ];
-            wallData.forEach(data => {
-                const w = document.createElement('div');
-                w.className = 'wall';
-                w.style.left = data.x + 'px'; w.style.top = data.y + 'px';
-                w.style.width = data.w + 'px'; w.style.height = data.h + 'px';
-                stage.appendChild(w);
-                walls.push(data);
-            });
-            updateAmmoDots(1, 10); updateAmmoDots(2, 10);
-        }
-
-        function startMove(p, dir) {
-            if(moveIntervals[p+dir]) return;
-            vibe();
-            moveIntervals[p+dir] = setInterval(() => doMove(p, dir), 30);
-        }
-
-        function stopMove(p) {
-            ['U','D','L','R'].forEach(dir => {
-                if(moveIntervals[p+dir]) { clearInterval(moveIntervals[p+dir]); delete moveIntervals[p+dir]; }
-            });
-        }
-
-        function doMove(p, dir) {
-            let pos = (p === 'p1' ? p1Pos : p2Pos);
-            let nextX = pos.x, nextY = pos.y, angle = pos.angle;
-
-            if(dir === 'U') { nextY -= MOVE_SPEED; angle = 0; }
-            if(dir === 'D') { nextY += MOVE_SPEED; angle = 180; }
-            if(dir === 'L') { nextX -= MOVE_SPEED; angle = 270; }
-            if(dir === 'R') { nextX += MOVE_SPEED; angle = 90; }
-
-            // Collision checks
-            if(nextX < 10 || nextX > window.innerWidth - TANK_SIZE - 10 || nextY < 70 || nextY > window.innerHeight - TANK_SIZE - 10) return;
-            
-            let hitWall = false;
-            walls.forEach(w => {
-                if(nextX < w.x + w.w && nextX + TANK_SIZE > w.x && nextY < w.y + w.h && nextY + TANK_SIZE > w.y) hitWall = true;
-            });
-            if(hitWall) return;
-
-            // Tank vs Tank collision
-            let otherPos = (p === 'p1' ? p2Pos : p1Pos);
-            if(nextX < otherPos.x + TANK_SIZE && nextX + TANK_SIZE > otherPos.x && nextY < otherPos.y + TANK_SIZE && nextY + TANK_SIZE > otherPos.y) return;
-
-            pos.x = nextX; pos.y = nextY; pos.angle = angle;
-            const el = document.getElementById(p);
-            el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.transform = `rotate(${pos.angle}deg)`;
-        }
-
         function shoot(p) {
-            if(p === 1 && (isReloading1 || ammo1 <= 0)) return;
-            if(p === 2 && (isReloading2 || ammo2 <= 0)) return;
-            vibe();
-
-            const tankEl = document.getElementById('p' + p);
-            const tankBody = tankEl.querySelector('.tank-body');
-            tankBody.classList.add('recoil');
-            setTimeout(() => tankBody.classList.remove('recoil'), 150);
-
-            const pos = (p === 1 ? p1Pos : p2Pos);
             const b = document.createElement('div');
             b.className = 'bullet';
-            
-            let bx, by, bvx=0, bvy=0;
-            // Center of tank
-            bx = pos.x + (TANK_SIZE/2) - 2;
-            by = pos.y + (TANK_SIZE/2) - 5;
-
-            if(pos.angle === 0) { bvy = -12; by -= 25; b.style.transform = 'rotate(0deg)'; }
-            else if(pos.angle === 180) { bvy = 12; by += 25; b.style.transform = 'rotate(180deg)'; }
-            else if(pos.angle === 270) { bvx = -12; bx -= 25; b.style.transform = 'rotate(270deg)'; }
-            else if(pos.angle === 90) { bvx = 12; bx += 25; b.style.transform = 'rotate(90deg)'; }
-            
+            let bx = (p === 1 ? p1X + 17 : p2X + 17);
+            let by = (p === 1 ? p1Y - 10 : p2Y + 40);
+            let bv = (p === 1 ? -10 : 10);
             b.style.left = bx + 'px'; b.style.top = by + 'px';
-            stage.appendChild(b);
-            bullets.push({el: b, x: bx, y: by, vx: bvx, vy: bvy, owner: p});
-
-            if(p === 1) { ammo1--; updateUI(); if(ammo1 === 0) reload(1); }
-            else { ammo2--; updateUI(); if(ammo2 === 0) reload(2); }
-        }
-
-        function reload(p) {
-            document.getElementById('reload-msg').style.display = 'block';
-            if(p === 1) isReloading1 = true; else isReloading2 = true;
-            setTimeout(() => {
-                if(p === 1) { ammo1 = 10; isReloading1 = false; }
-                else { ammo2 = 10; isReloading2 = false; }
-                updateUI();
-                if(!isReloading1 && !isReloading2) document.getElementById('reload-msg').style.display = 'none';
-            }, 2000);
-        }
-
-        function explode(x, y) {
-            vibe(); vibe();
-            const ex = document.createElement('div'); ex.className = 'explosion';
-            ex.style.left = (x - 30) + 'px'; ex.style.top = (y - 30) + 'px';
-            stage.appendChild(ex);
-            setTimeout(() => ex.remove(), 400);
+            document.getElementById('stage').appendChild(b);
+            bullets.push({el: b, x: bx, y: by, v: bv, owner: p});
         }
 
         function gameLoop() {
             bullets.forEach((b, i) => {
-                b.x += b.vx; b.y += b.vy;
-                b.el.style.left = b.x + 'px'; b.el.style.top = b.y + 'px';
-
-                walls.forEach(w => {
-                    if(b.x > w.x && b.x < w.x+w.w && b.y > w.y && b.y < w.y+w.h) { explode(b.x, b.y); removeB(b,i); }
-                });
-
-                // Hit Detection
-                if(b.owner === 2 && b.x > p1Pos.x && b.x < p1Pos.x + TANK_SIZE && b.y > p1Pos.y && b.y < p1Pos.y + TANK_SIZE) {
-                    hp1 -= 10; explode(b.x, b.y); removeB(b,i); updateUI(); checkWin();
-                } else if(b.owner === 1 && b.x > p2Pos.x && b.x < p2Pos.x + TANK_SIZE && b.y > p2Pos.y && b.y < p2Pos.y + TANK_SIZE) {
-                    hp2 -= 10; explode(b.x, b.y); removeB(b,i); updateUI(); checkWin();
+                b.y += b.v;
+                b.el.style.top = b.y + 'px';
+                
+                // Hit detection
+                if(b.owner === 1 && b.y < p2Y + 40 && b.y > p2Y && b.x > p2X && b.x < p2X + 40) {
+                    hp2 -= 10; document.getElementById('hp2').style.width = hp2 + '%';
+                    b.el.remove(); bullets.splice(i, 1);
                 }
-
-                if(b.x < 0 || b.x > window.innerWidth || b.y < 0 || b.y > window.innerHeight) removeB(b,i);
+                if(b.owner === 2 && b.y > p1Y && b.y < p1Y + 40 && b.x > p1X && b.x < p1X + 40) {
+                    hp1 -= 10; document.getElementById('hp1').style.width = hp1 + '%';
+                    b.el.remove(); bullets.splice(i, 1);
+                }
+                if(b.y < 0 || b.y > 600) { b.el.remove(); bullets.splice(i, 1); }
             });
+            if(hp1 <= 0 || hp2 <= 0) { alert("Game Over!"); location.reload(); }
             requestAnimationFrame(gameLoop);
         }
-
-        function removeB(b, i) { b.el.remove(); bullets.splice(i, 1); }
-
-        function checkWin() {
-            if(hp1 <= 0 || hp2 <= 0) {
-                const ws = document.getElementById('win-screen');
-                const wt = document.getElementById('win-text');
-                wt.innerText = (hp1 <= 0 ? "PLAYER 2\nVICTORY" : "PLAYER 1\nVICTORY");
-                wt.className = (hp1 <= 0 ? 'p2-val' : 'p1-val');
-                ws.style.display = 'flex';
-                cancelAnimationFrame(gameLoop);
-            }
-        }
-
-        // Keyboard Support
-        window.onkeydown = (e) => {
-            if(e.key === 'w') startMove('p1','U'); if(e.key === 's') startMove('p1','D'); if(e.key === 'a') startMove('p1','L'); if(e.key === 'd') startMove('p1','R'); if(e.key === ' ') shoot(1);
-            if(e.key === 'ArrowUp') startMove('p2','U'); if(e.key === 'ArrowDown') startMove('p2','D'); if(e.key === 'ArrowLeft') startMove('p2','L'); if(e.key === 'ArrowRight') startMove('p2','R'); if(e.key === 'Enter') shoot(2);
-        };
-        window.onkeyup = (e) => {
-            if(['w','s','a','d'].includes(e.key)) stopMove('p1');
-            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) stopMove('p2');
-        };
-
-        // Initialize
-        const p1El = document.getElementById('p1'); const p2El = document.getElementById('p2');
-        p1El.style.left = p1Pos.x+'px'; p1El.style.top = p1Pos.y+'px';
-        p2El.style.left = p2Pos.x+'px'; p2El.style.top = p2Pos.y+'px';
-        
-        createMap(); updateUI(); gameLoop();
+        gameLoop();
     </script>
 </body>
 </html>
