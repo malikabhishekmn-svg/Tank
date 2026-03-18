@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tank Wars Pro</title>
+    <style>
+        :root { --p1-color: #3498db; --p2-color: #e74c3c; }
+        body { margin: 0; background: #111; color: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: none; }
+        
+        #game-ui { display: flex; justify-content: space-around; padding: 10px; background: #222; border-bottom: 2px solid #444; }
+        .stat-box { text-align: center; }
+        .hp-bar { width: 100px; height: 10px; background: #444; border: 1px solid #fff; margin-top: 5px; }
+        .hp-fill { height: 100%; transition: width 0.3s; }
+
+        #stage { position: relative; width: 100vw; height: 65vh; background: #2c3e50; overflow: hidden; border-bottom: 3px solid #555; }
+        
+        /* Tank Styling */
+        .tank { position: absolute; width: 50px; height: 50px; transition: transform 0.1s linear; }
+        .tank-body { width: 100%; height: 100%; border-radius: 5px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .tank-barrel { width: 10px; height: 30px; position: absolute; left: 20px; border-radius: 5px; transition: transform 0.1s; }
+        .treads { position: absolute; width: 110%; height: 100%; left: -5%; display: flex; justify-content: space-between; top:0; z-index: -1; }
+        .tread { width: 8px; height: 100%; background: #333; border-radius: 2px; }
+
+        #p1 .tank-body, #p1 .tank-barrel { background: var(--p1-color); border: 2px solid #2980b9; }
+        #p1 .tank-barrel { top: -25px; }
+        #p2 .tank-body, #p2 .tank-barrel { background: var(--p2-color); border: 2px solid #c0392b; }
+        #p2 .tank-barrel { bottom: -25px; }
+
+        /* Obstacles */
+        .wall { position: absolute; width: 50px; height: 30px; background: #7f8c8d; border: 2px solid #34495e; border-radius: 3px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); }
+
+        /* Bullet & FX */
+        .bullet { position: absolute; width: 8px; height: 12px; border-radius: 4px; box-shadow: 0 0 10px #f1c40f; }
+        .explosion { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #f1c40f, #e67e22, transparent); border-radius: 50%; animation: boom 0.4s ease-out forwards; pointer-events: none; }
+        
+        @keyframes boom { 0% { transform: scale(0.1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+
+        /* Controls */
+        #controls { display: grid; grid-template-columns: 1fr 1fr; height: 25vh; gap: 5px; padding: 5px; }
+        .ctrl-group { display: flex; align-items: center; justify-content: center; background: #222; border-radius: 10px; flex-wrap: wrap; }
+        .btn { width: 70px; height: 50px; margin: 3px; background: #444; border: none; color: #fff; border-radius: 8px; font-weight: bold; -webkit-tap-highlight-color: transparent; }
+        .btn:active { background: #666; transform: scale(0.9); }
+        .fire { background: #d35400 !important; width: 100px; }
+    </style>
+</head>
+<body>
+
+    <div id="game-ui">
+        <div class="stat-box">
+            P1 (Blue)
+            <div class="hp-bar"><div id="hp1" class="hp-fill" style="width: 100%; background: var(--p1-color);"></div></div>
+        </div>
+        <div class="stat-box">
+            P2 (Red)
+            <div class="hp-bar"><div id="hp2" class="hp-fill" style="width: 100%; background: var(--p2-color);"></div></div>
+        </div>
+    </div>
+
+    <div id="stage">
+        <div id="p1" class="tank" style="left: 100px; bottom: 20px;">
+            <div class="treads"><div class="tread"></div><div class="tread"></div></div>
+            <div class="tank-barrel"></div>
+            <div class="tank-body"></div>
+        </div>
+        <div id="p2" class="tank" style="left: 100px; top: 20px;">
+            <div class="treads"><div class="tread"></div><div class="tread"></div></div>
+            <div class="tank-barrel"></div>
+            <div class="tank-body"></div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <div class="ctrl-group">
+            <button class="btn" onpointerdown="move('p1',-15)">◀</button>
+            <button class="btn fire" onpointerdown="shoot(1)">FIRE</button>
+            <button class="btn" onpointerdown="move('p1',15)">▶</button>
+        </div>
+        <div class="ctrl-group">
+            <button class="btn" onpointerdown="move('p2',-15)">◀</button>
+            <button class="btn fire" onpointerdown="shoot(2)">FIRE</button>
+            <button class="btn" onpointerdown="move('p2',15)">▶</button>
+        </div>
+    </div>
+
+    <script>
+        const stage = document.getElementById('stage');
+        let hp1 = 100, hp2 = 100;
+        let p1X = 100, p2X = 100;
+        let bullets = [];
+        let walls = [];
+
+        // බාධක (Walls) සෑදීම
+        function createWalls() {
+            for(let i=0; i<5; i++) {
+                const wall = document.createElement('div');
+                wall.className = 'wall';
+                let x = 50 + (i * 120);
+                let y = (stage.offsetHeight / 2) - 15;
+                wall.style.left = x + 'px';
+                wall.style.top = y + 'px';
+                stage.appendChild(wall);
+                walls.push({el: wall, x, y, hp: 3});
+            }
+        }
+
+        function move(p, val) {
+            if(p === 'p1') {
+                p1X = Math.max(0, Math.min(window.innerWidth-50, p1X + val));
+                document.getElementById('p1').style.left = p1X + 'px';
+            } else {
+                p2X = Math.max(0, Math.min(window.innerWidth-50, p2X + val));
+                document.getElementById('p2').style.left = p2X + 'px';
+            }
+        }
+
+        function shoot(p) {
+            const b = document.createElement('div');
+            b.className = 'bullet';
+            let bx = (p === 1 ? p1X + 21 : p2X + 21);
+            let by = (p === 1 ? stage.offsetHeight - 80 : 60);
+            let bv = (p === 1 ? -8 : 8);
+            
+            b.style.left = bx + 'px';
+            b.style.top = by + 'px';
+            b.style.background = (p === 1 ? 'var(--p1-color)' : 'var(--p2-color)');
+            stage.appendChild(b);
+            bullets.push({el: b, x: bx, y: by, v: bv, owner: p});
+        }
+
+        function explode(x, y) {
+            const ex = document.createElement('div');
+            ex.className = 'explosion';
+            ex.style.left = (x - 25) + 'px';
+            ex.style.top = (y - 25) + 'px';
+            stage.appendChild(ex);
+            setTimeout(() => ex.remove(), 400);
+        }
+
+        function gameLoop() {
+            bullets.forEach((b, i) => {
+                b.y += b.v;
+                b.el.style.top = b.y + 'px';
+
+                // බිත්ති වල වැදීම පරීක්ෂාව
+                walls.forEach((w, wi) => {
+                    if(b.x > w.x && b.x < w.x+50 && b.y > w.y && b.y < w.y+30) {
+                        explode(b.x, b.y);
+                        w.hp--;
+                        w.el.style.opacity = w.hp / 3;
+                        if(w.hp <= 0) { w.el.remove(); walls.splice(wi, 1); }
+                        b.el.remove(); bullets.splice(i, 1);
+                    }
+                });
+
+                // ටැංකි වල වැදීම පරීක්ෂාව
+                if(b.owner === 2 && b.y > stage.offsetHeight - 70 && b.x > p1X && b.x < p1X + 50) {
+                    hp1 -= 10;
+                    document.getElementById('hp1').style.width = hp1 + '%';
+                    explode(b.x, b.y);
+                    b.el.remove(); bullets.splice(i, 1);
+                } else if(b.owner === 1 && b.y < 70 && b.x > p2X && b.x < p2X + 50) {
+                    hp2 -= 10;
+                    document.getElementById('hp2').style.width = hp2 + '%';
+                    explode(b.x, b.y);
+                    b.el.remove(); bullets.splice(i, 1);
+                }
+
+                if(b.y < 0 || b.y > stage.offsetHeight) { b.el.remove(); bullets.splice(i, 1); }
+            });
+
+            if(hp1 <= 0 || hp2 <= 0) {
+                alert(hp1 <= 0 ? "PLAYER 2 WINS!" : "PLAYER 1 WINS!");
+                location.reload();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Keyboard Support
+        window.onkeydown = (e) => {
+            if(e.key === 'a') move('p1', -15);
+            if(e.key === 'd') move('p1', 15);
+            if(e.key === ' ') shoot(1);
+            if(e.key === 'ArrowLeft') move('p2', -15);
+            if(e.key === 'ArrowRight') move('p2', 15);
+            if(e.key === 'Enter') shoot(2);
+        };
+
+        createWalls();
+        gameLoop();
+    </script>
+</body>
+  </html>
