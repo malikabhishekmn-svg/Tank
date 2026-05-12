@@ -3,173 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impossible Spin Wheel</title>
+    <title>Premium Mystery Spin</title>
+    <!-- SweetAlert2 for beautiful popups -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS styling මෙතන තියෙන්නේ */
+        :root {
+            --primary-color: #00f2fe;
+            --secondary-color: #4facfe;
+            --accent-color: #f093fb;
+            --bg-dark: #0f0c29;
+        }
+
         body {
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #1a1a2e;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Poppins', sans-serif;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
 
         .container {
             text-align: center;
-        }
-
-        .wheel-wrapper {
             position: relative;
-            margin-bottom: 30px;
-            display: inline-block;
+            z-index: 1;
         }
 
-        /* Wheel pointer එක (උඩ තියෙන ඊතලය) */
+        /* Neon Border for Wheel */
+        .wheel-container {
+            position: relative;
+            width: 460px;
+            height: 460px;
+            margin: 0 auto 30px;
+            padding: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
         .pointer {
             position: absolute;
             top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid #ff004c;
-            z-index: 10;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+            width: 40px;
+            height: 50px;
+            background: #ff0055;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 20;
+            filter: drop-shadow(0 0 10px #ff0055);
         }
 
         canvas {
+            display: block;
             border-radius: 50%;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5), 0 0 10px rgba(255,255,255,0.1);
-            transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+            transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
         }
 
-        button {
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            background: linear-gradient(45deg, #ff004c, #ff6b00);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(255, 0, 76, 0.4);
-            transition: 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(255, 0, 76, 0.6);
-        }
-
-        button:disabled {
-            background: #555;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        #result {
+        .controls {
             margin-top: 20px;
-            font-size: 1.8rem;
-            min-height: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #spinBtn {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #spinBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.8);
+        }
+
+        #spinBtn:disabled {
+            background: #444;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Background Music Controls */
+        .music-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid white;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 style="margin-bottom: 40px;">Spin & Win!</h1>
-        <div class="wheel-wrapper">
+        <h1>✨ SUPREME MYSTERY SPIN ✨</h1>
+        <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="450" height="450"></canvas>
         </div>
-        <br>
-        <button id="spinBtn">SPIN NOW</button>
-        <div id="result">Try your luck!</div>
+        <div class="controls">
+            <button id="spinBtn">SPIN TO WIN</button>
+        </div>
     </div>
+
+    <!-- Audio Elements -->
+    <audio id="spinSound" src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3"></audio>
+    <audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3"></audio>
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    
+    <button class="music-toggle" onclick="toggleMusic()">🎵</button>
 
     <script>
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
         const spinBtn = document.getElementById("spinBtn");
-        const resultText = document.getElementById("result");
+        
+        const spinSound = document.getElementById("spinSound");
+        const winSound = document.getElementById("winSound");
+        const bgMusic = document.getElementById("bgMusic");
 
-        // මෙතන තමයි items තියෙන්නේ. 0 index එකේ තියෙන "iPhone 15" කවදාවත් එන්නේ නැහැ.
+        // --- CONFIGURATION ---
         const items = [
-            { label: "iPhone 15", color: "#f1c40f" }, // Index 0 - RIGGED (Impossible)
-            { label: "Try Again", color: "#34495e" },
-            { label: "Free Spin", color: "#2980b9" },
-            { label: "No Luck", color: "#c0392b" },
-            { label: "Gift Box", color: "#27ae60" },
-            { label: "Oops!", color: "#8e44ad" },
-            { label: "Better Luck", color: "#d35400" },
-            { label: "Spin Again", color: "#16a085" }
+            { label: "Grand Prize", image: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "Pro Prize 1", image: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
+            { label: "Pro Prize 2", image: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
+            { label: "One More", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
+            { label: "Try Again", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" },
+            { label: "No Luck", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
+            { label: "Bad Day", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" }
         ];
 
         const size = items.length;
         const arc = (2 * Math.PI) / size;
         let currentRotation = 0;
+        let isMusicPlaying = false;
 
-        // Wheel එක අඳින function එක
+        // Load Images
+        const loadedImages = [];
+        let imagesLoadedCount = 0;
+        items.forEach((item, index) => {
+            const img = new Image();
+            img.src = item.image;
+            img.onload = () => {
+                imagesLoadedCount++;
+                if(imagesLoadedCount === size) drawWheel();
+            };
+            loadedImages[index] = img;
+        });
+
+        function toggleMusic() {
+            if(!isMusicPlaying) {
+                bgMusic.play();
+                isMusicPlaying = true;
+            } else {
+                bgMusic.pause();
+                isMusicPlaying = false;
+            }
+        }
+
         function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, 450, 450);
             items.forEach((item, i) => {
                 const angle = i * arc;
                 
-                // Segment එක අඳිනවා
+                // Draw Segment
                 ctx.beginPath();
                 ctx.fillStyle = item.color;
                 ctx.moveTo(225, 225);
-                ctx.arc(225, 225, 225, angle, angle + arc);
+                ctx.arc(225, 225, 220, angle, angle + arc);
                 ctx.lineTo(225, 225);
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                ctx.strokeStyle = "rgba(255,255,255,0.5)";
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Text එක ලියනවා
+                // Draw Image & Text
                 ctx.save();
                 ctx.translate(225, 225);
                 ctx.rotate(angle + arc / 2);
+                
+                // Draw Icon
+                if(loadedImages[i]) {
+                    ctx.drawImage(loadedImages[i], 130, -20, 40, 40);
+                }
+
                 ctx.fillStyle = "white";
-                ctx.textAlign = "right";
-                ctx.font = "bold 18px Arial";
-                ctx.fillText(item.label, 200, 10);
+                ctx.font = "bold 14px Arial";
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "black";
+                ctx.fillText(item.label, 60, 10);
                 ctx.restore();
             });
         }
 
         spinBtn.addEventListener("click", () => {
+            if(!isMusicPlaying) toggleMusic(); // Start BG Music on first click
+            
             spinBtn.disabled = true;
-            resultText.innerText = "Spinning...";
-            resultText.style.color = "white";
+            spinSound.currentTime = 0;
+            spinSound.play();
 
-            // RIGGED LOGIC: Index 0 තෝරන්නේ නැති වෙන්න බල කරනවා
+            // --- THE RIGGED CALCULATION ---
             let stopIndex;
-            do {
-                stopIndex = Math.floor(Math.random() * size);
-            } while (stopIndex === 0); // මෙතන 0 නම් ආපහු තෝරනවා
+            const rand = Math.random() * 100; // 0 - 100
 
-            // කැරකෙන ප්‍රමාණය ගණනය කිරීම (5 rotations + target offset)
+            if (rand < 2) { 
+                // 2% chance for Pro Prizes
+                stopIndex = Math.random() > 0.5 ? 1 : 2;
+            } else {
+                // 98% chance for others (Excluding Index 0)
+                stopIndex = Math.floor(Math.random() * (size - 3)) + 3;
+            }
+
+            // Calculate rotation
             const extraDegree = (size - stopIndex) * arc - (arc / 2);
             const totalRotation = (Math.PI * 2 * 10) + extraDegree; 
             
             currentRotation += totalRotation;
             canvas.style.transform = `rotate(${currentRotation}rad)`;
 
-            // කරකැවිලා ඉවර වුණාම result එක පෙන්නන්න
             setTimeout(() => {
                 spinBtn.disabled = false;
-                resultText.innerText = items[stopIndex].label;
+                spinSound.pause();
+                winSound.play();
+
+                const wonItem = items[stopIndex];
                 
-                if(items[stopIndex].label === "iPhone 15") {
-                    resultText.style.color = "#f1c40f"; // මේක කවදාවත් වෙන්නේ නැහැ
-                }
-            }, 5000);
+                // --- POPUP NOTIFICATION ---
+                Swal.fire({
+                    title: wonItem.label === "Grand Prize" ? 'UNBELIEVABLE!' : 'RESULT',
+                    text: wonItem.type === "common" ? `Better luck next time! You got: ${wonItem.label}` : `CONGRATULATIONS! You won ${wonItem.label}!`,
+                    imageUrl: wonItem.image,
+                    imageWidth: 100,
+                    imageHeight: 100,
+                    background: '#1a1a2e',
+                    color: '#fff',
+                    confirmButtonColor: '#00f2fe',
+                    backdrop: `rgba(0,0,123,0.4) url("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKDkDbIDJieKbVm/giphy.gif") left top no-repeat`
+                });
+
+            }, 6000);
         });
 
         drawWheel();
