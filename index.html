@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Fixed Mystery Spin</title>
+    <title>Rigged Pro Wheel</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -20,7 +20,7 @@
             align-items: center;
             min-height: 100vh;
             background: radial-gradient(circle, #1a1a3a 0%, #050510 100%);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             overflow: hidden;
         }
@@ -52,7 +52,7 @@
 
         canvas {
             border-radius: 50%;
-            transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
+            transition: transform 7s cubic-bezier(0.15, 0, 0.1, 1);
             display: block;
         }
 
@@ -83,7 +83,7 @@
 <body>
 
     <div class="container">
-        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue); margin-top: 0;">LUCKY WHEEL</h1>
+        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue);">ULTIMATE SPIN</h1>
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="480" height="480"></canvas>
@@ -92,7 +92,6 @@
         <p class="hint">Press <b>SPACE</b> to Spin!</p>
     </div>
 
-    <!-- Sounds -->
     <audio id="spinSound" src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3"></audio>
     <audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3"></audio>
 
@@ -104,15 +103,14 @@
         const winSound = document.getElementById("winSound");
 
         // --- Items Configuration ---
-        // Best Prize එක Index 3 (එක එන්නේ නැහැ)
         const items = [
-            { label: "Chance 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "chance" },
-            { label: "Pro Prize 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
-            { label: "No Luck", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "bad" },
-            { label: "BEST PRIZE", imgUrl: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
-            { label: "Chance 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "chance" },
-            { label: "Pro Prize 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
-            { label: "No Chance", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "bad" }
+            { label: "Oops!", img: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
+            { label: "Pro Prize 1", img: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
+            { label: "Try Again", img: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
+            { label: "BEST PRIZE", img: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "No Luck", img: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" },
+            { label: "Pro Prize 2", img: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
+            { label: "Chance!", img: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" }
         ];
 
         const size = items.length;
@@ -120,48 +118,36 @@
         let currentRotation = 0;
         let canSpin = true;
 
-        // Image Loading Logic
-        let imagesLoaded = 0;
-        const imgs = [];
-        items.forEach((item, i) => {
+        // Image Preloading
+        const imgs = items.map(item => {
             const img = new Image();
-            img.src = item.imgUrl;
-            img.onload = () => {
-                imagesLoaded++;
-                if (imagesLoaded === size) drawWheel();
-            };
-            imgs[i] = img;
+            img.src = item.img;
+            img.onload = drawWheel;
+            return img;
         });
 
-        // අඳින විදිය (Images නැතත් text එක හරි පේන්න හැදුවා)
         function drawWheel() {
             ctx.clearRect(0, 0, 480, 480);
-            for (let i = 0; i < size; i++) {
+            items.forEach((item, i) => {
                 const angle = i * arc;
-                
                 ctx.beginPath();
-                ctx.fillStyle = items[i].color;
+                ctx.fillStyle = item.color;
                 ctx.moveTo(240, 240);
                 ctx.arc(240, 240, 235, angle, angle + arc);
                 ctx.lineTo(240, 240);
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                ctx.strokeStyle = "rgba(255,255,255,0.1)";
                 ctx.stroke();
 
                 ctx.save();
                 ctx.translate(240, 240);
                 ctx.rotate(angle + arc / 2);
-                
-                // Draw Image if loaded
-                if (imagesLoaded === size) {
-                    ctx.drawImage(imgs[i], 140, -20, 45, 45);
-                }
-
+                ctx.drawImage(imgs[i], 145, -20, 40, 40);
                 ctx.fillStyle = "white";
-                ctx.font = "bold 15px Arial";
-                ctx.fillText(items[i].label, 65, 10);
+                ctx.font = "bold 14px Arial";
+                ctx.fillText(item.label, 70, 10);
                 ctx.restore();
-            }
+            });
         }
 
         const startSpin = () => {
@@ -171,25 +157,29 @@
             spinSound.currentTime = 0;
             spinSound.play();
 
-            // --- RIGGED CALCULATION ---
+            // --- RIGGED LOGIC ---
             let stopIndex;
-            const rand = Math.random() * 100;
+            const luck = Math.random() * 100;
 
-            if (rand < 2) { 
-                // 2% Chance for Pro Prizes (1 or 5)
+            if (luck < 1) { 
+                // 1% Chance for Pro Prizes (Super Rare)
                 stopIndex = Math.random() > 0.5 ? 1 : 5;
             } else {
-                // Other indices: 0, 2, 4, 6 (Except 3 - Best Prize)
-                const options = [0, 2, 4, 6];
-                stopIndex = options[Math.floor(Math.random() * options.length)];
+                // 99% Chance for Common (0, 2, 4, 6)
+                // Index 3 (Best Prize) is completely skipped.
+                const commonIndices = [0, 2, 4, 6];
+                stopIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)];
             }
 
-            // Calculation to align with pointer at top
-            const extraDegree = (size - stopIndex) * arc - (arc / 2);
-            // 12 full rotations + target
-            const rotationValue = (Math.PI * 2 * 12) + extraDegree; 
+            // Calculate rotation to stop exactly at the pointer (top)
+            // The canvas rotation starts from 3 o'clock, so we adjust by -90 degrees (PI/2)
+            const rotationToTop = (3 * Math.PI) / 2; 
+            const segmentCenter = (stopIndex * arc) + (arc / 2);
+            const finalAngle = rotationToTop - segmentCenter;
             
-            currentRotation += rotationValue;
+            const totalSpins = (Math.PI * 2 * 10); // 10 full rounds
+            currentRotation += totalSpins + finalAngle - (currentRotation % (Math.PI * 2));
+            
             canvas.style.transform = `rotate(${currentRotation}rad)`;
 
             setTimeout(() => {
@@ -197,48 +187,28 @@
                 spinBtn.disabled = false;
                 winSound.play();
 
-                const won = items[stopIndex];
+                const res = items[stopIndex];
                 
-                // Results Popup
                 Swal.fire({
-                    title: `<span style="color:${won.color}">${won.label}</span>`,
+                    title: `<span style="color:${res.color}">${res.label}</span>`,
                     html: `
-                        <div class="animate__animated animate__zoomIn">
-                            <img src="${won.imgUrl}" width="80" style="margin-bottom:15px">
-                            <p style="font-size:1.1rem">${getResultMsg(won.type)}</p>
+                        <div class="animate__animated animate__bounceIn">
+                            <img src="${res.img}" width="80" style="margin-bottom:15px">
+                            <p>${res.type === 'rare' ? 'PISSU KORA! You won a Pro Prize! 🏆' : 'Oops.. Adath na machan! Try again. 💀'}</p>
                         </div>
                     `,
                     background: '#0a0a1a',
                     color: '#fff',
-                    showClass: { popup: 'animate__animated animate__jackInTheBox' },
-                    hideClass: { popup: 'animate__animated animate__zoomOut' },
+                    showClass: { popup: 'animate__animated animate__zoomInDown' },
                     confirmButtonText: 'Try Again',
-                    confirmButtonColor: '#00f2fe'
+                    confirmButtonColor: var(--neon-blue)
                 });
-            }, 6500);
+            }, 7200);
         };
 
-        function getResultMsg(type) {
-            if (type === 'rare') return "OMG! You're super lucky machan! 🎉";
-            if (type === 'bad') return "Aiyo.. No luck today. Try again! 😅";
-            return "Not bad! You got another chance. 🔥";
-        }
-
-        // Space bar
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                startSpin();
-            }
-        });
-
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); startSpin(); } });
         spinBtn.addEventListener("click", startSpin);
-
-        // Fallback: Images load වෙන්න පරක්කු වුණොත් wheel එක ඇඳලා පෙන්නන්න
-        setTimeout(() => {
-            if (imagesLoaded < size) drawWheel();
-        }, 1000);
-
+        drawWheel();
     </script>
 </body>
 </html>
