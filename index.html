@@ -3,263 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Mystery Spin</title>
-    <!-- SweetAlert2 for beautiful popups -->
+    <title>Ultimate Mystery Spin</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         :root {
-            --primary-color: #00f2fe;
-            --secondary-color: #4facfe;
-            --accent-color: #f093fb;
-            --bg-dark: #0f0c29;
+            --neon-blue: #00f2fe;
+            --neon-pink: #ff0055;
+            --bg-dark: #050510;
         }
 
         body {
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background: radial-gradient(circle, #1a1a3a 0%, #050510 100%);
             font-family: 'Poppins', sans-serif;
             color: white;
             overflow: hidden;
         }
 
-        .container {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
+        .container { text-align: center; }
 
-        /* Neon Border for Wheel */
         .wheel-container {
             position: relative;
-            width: 460px;
-            height: 460px;
-            margin: 0 auto 30px;
-            padding: 10px;
+            width: 480px;
+            height: 480px;
+            margin-bottom: 30px;
+            border: 8px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px var(--neon-blue);
         }
 
         .pointer {
             position: absolute;
-            top: -20px;
+            top: -25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 50px;
-            background: #ff0055;
+            width: 45px;
+            height: 55px;
+            background: var(--neon-pink);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 20;
-            filter: drop-shadow(0 0 10px #ff0055);
+            z-index: 30;
+            filter: drop-shadow(0 0 15px var(--neon-pink));
         }
 
         canvas {
-            display: block;
             border-radius: 50%;
             transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
         }
 
-        .controls {
-            margin-top: 20px;
-        }
-
         #spinBtn {
-            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            background: linear-gradient(45deg, var(--neon-blue), #4facfe);
             border: none;
-            padding: 15px 50px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 18px 60px;
+            font-size: 1.4rem;
+            font-weight: 900;
             color: white;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 25px rgba(0, 242, 254, 0.4);
+            transition: 0.3s;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
         #spinBtn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 40px rgba(0, 242, 254, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 40px var(--neon-blue);
         }
 
-        #spinBtn:disabled {
-            background: #444;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
+        #spinBtn:disabled { background: #333; cursor: not-allowed; opacity: 0.6; }
 
-        /* Background Music Controls */
-        .music-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid white;
-            color: white;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
+        .hint { margin-top: 15px; color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+
+        /* SweetAlert Custom Styles */
+        .swal2-popup-custom {
+            border-radius: 20px !important;
+            border: 2px solid var(--neon-blue) !important;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>✨ SUPREME MYSTERY SPIN ✨</h1>
+        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue);">LUCKY WHEEL</h1>
         <div class="wheel-container">
             <div class="pointer"></div>
-            <canvas id="wheel" width="450" height="450"></canvas>
+            <canvas id="wheel" width="480" height="480"></canvas>
         </div>
-        <div class="controls">
-            <button id="spinBtn">SPIN TO WIN</button>
-        </div>
+        <button id="spinBtn">SPIN NOW</button>
+        <p class="hint">Press <b>SPACE</b> to Spin!</p>
     </div>
 
-    <!-- Audio Elements -->
     <audio id="spinSound" src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3"></audio>
     <audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3"></audio>
-    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-    
-    <button class="music-toggle" onclick="toggleMusic()">🎵</button>
 
     <script>
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
         const spinBtn = document.getElementById("spinBtn");
-        
         const spinSound = document.getElementById("spinSound");
         const winSound = document.getElementById("winSound");
-        const bgMusic = document.getElementById("bgMusic");
 
-        // --- CONFIGURATION ---
+        // 1. Items ටික mix කරලා තියෙන්නේ (Randomly ordered)
         const items = [
-            { label: "Grand Prize", image: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "Try Again", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
             { label: "Pro Prize 1", image: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
-            { label: "Pro Prize 2", image: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
-            { label: "One More", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
-            { label: "Try Again", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" },
             { label: "No Luck", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
-            { label: "Bad Day", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" }
+            { label: "Best Prize", image: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "Another Chance", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" },
+            { label: "Pro Prize 2", image: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
+            { label: "No Chance", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" }
         ];
 
         const size = items.length;
         const arc = (2 * Math.PI) / size;
         let currentRotation = 0;
-        let isMusicPlaying = false;
+        let canSpin = true;
 
-        // Load Images
-        const loadedImages = [];
-        let imagesLoadedCount = 0;
-        items.forEach((item, index) => {
+        // Image Loading
+        const loadedImages = items.map(item => {
             const img = new Image();
             img.src = item.image;
-            img.onload = () => {
-                imagesLoadedCount++;
-                if(imagesLoadedCount === size) drawWheel();
-            };
-            loadedImages[index] = img;
+            img.onload = drawWheel;
+            return img;
         });
 
-        function toggleMusic() {
-            if(!isMusicPlaying) {
-                bgMusic.play();
-                isMusicPlaying = true;
-            } else {
-                bgMusic.pause();
-                isMusicPlaying = false;
-            }
-        }
-
         function drawWheel() {
-            ctx.clearRect(0, 0, 450, 450);
+            ctx.clearRect(0, 0, 480, 480);
             items.forEach((item, i) => {
                 const angle = i * arc;
-                
-                // Draw Segment
                 ctx.beginPath();
                 ctx.fillStyle = item.color;
-                ctx.moveTo(225, 225);
-                ctx.arc(225, 225, 220, angle, angle + arc);
-                ctx.lineTo(225, 225);
+                ctx.moveTo(240, 240);
+                ctx.arc(240, 240, 235, angle, angle + arc);
+                ctx.lineTo(240, 240);
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.5)";
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255,255,255,0.2)";
                 ctx.stroke();
 
-                // Draw Image & Text
                 ctx.save();
-                ctx.translate(225, 225);
+                ctx.translate(240, 240);
                 ctx.rotate(angle + arc / 2);
-                
-                // Draw Icon
-                if(loadedImages[i]) {
-                    ctx.drawImage(loadedImages[i], 130, -20, 40, 40);
-                }
-
+                ctx.drawImage(loadedImages[i], 140, -20, 45, 45);
                 ctx.fillStyle = "white";
-                ctx.font = "bold 14px Arial";
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = "black";
-                ctx.fillText(item.label, 60, 10);
+                ctx.font = "bold 15px Arial";
+                ctx.fillText(item.label, 65, 10);
                 ctx.restore();
             });
         }
 
-        spinBtn.addEventListener("click", () => {
-            if(!isMusicPlaying) toggleMusic(); // Start BG Music on first click
-            
+        const startSpin = () => {
+            if (!canSpin) return;
+            canSpin = false;
             spinBtn.disabled = true;
             spinSound.currentTime = 0;
             spinSound.play();
 
-            // --- THE RIGGED CALCULATION ---
+            // Logic: Best Prize (Index 3) කවදාවත් එන්නේ නැහැ.
+            // Pro prizes (Index 1, 5) එන්නේ 2% chance එකකින්.
             let stopIndex;
-            const rand = Math.random() * 100; // 0 - 100
-
-            if (rand < 2) { 
-                // 2% chance for Pro Prizes
-                stopIndex = Math.random() > 0.5 ? 1 : 2;
+            const rand = Math.random() * 100;
+            if (rand < 2) {
+                stopIndex = Math.random() > 0.5 ? 1 : 5;
             } else {
-                // 98% chance for others (Excluding Index 0)
-                stopIndex = Math.floor(Math.random() * (size - 3)) + 3;
+                // Common items: 0, 2, 4, 6
+                const commons = [0, 2, 4, 6];
+                stopIndex = commons[Math.floor(Math.random() * commons.length)];
             }
 
-            // Calculate rotation
             const extraDegree = (size - stopIndex) * arc - (arc / 2);
-            const totalRotation = (Math.PI * 2 * 10) + extraDegree; 
+            const totalRotation = (Math.PI * 2 * 12) + extraDegree; 
             
             currentRotation += totalRotation;
             canvas.style.transform = `rotate(${currentRotation}rad)`;
 
             setTimeout(() => {
+                canSpin = true;
                 spinBtn.disabled = false;
-                spinSound.pause();
                 winSound.play();
 
                 const wonItem = items[stopIndex];
                 
-                // --- POPUP NOTIFICATION ---
+                // 3. Popup with Animation inside
                 Swal.fire({
-                    title: wonItem.label === "Grand Prize" ? 'UNBELIEVABLE!' : 'RESULT',
-                    text: wonItem.type === "common" ? `Better luck next time! You got: ${wonItem.label}` : `CONGRATULATIONS! You won ${wonItem.label}!`,
-                    imageUrl: wonItem.image,
-                    imageWidth: 100,
-                    imageHeight: 100,
-                    background: '#1a1a2e',
+                    title: `<span style="color:${wonItem.color}">${wonItem.label}</span>`,
+                    html: `
+                        <div class="animate__animated animate__zoomInDown">
+                            <img src="${wonItem.image}" width="100">
+                            <p style="margin-top:20px">${wonItem.type === 'common' ? 'Aww.. Try again machan!' : 'WHOA! You are lucky!'}</p>
+                        </div>
+                    `,
+                    background: '#0a0a1a',
                     color: '#fff',
-                    confirmButtonColor: '#00f2fe',
-                    backdrop: `rgba(0,0,123,0.4) url("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueGZueCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKDkDbIDJieKbVm/giphy.gif") left top no-repeat`
+                    showClass: { popup: 'animate__animated animate__backInUp' },
+                    hideClass: { popup: 'animate__animated animate__backOutDown' },
+                    customClass: { popup: 'swal2-popup-custom' },
+                    confirmButtonText: 'COOL!',
+                    confirmButtonColor: var(--neon-blue)
                 });
-
             }, 6000);
+        };
+
+        // 2. Space bar event listener
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Page එක scroll වෙන එක නවත්තන්න
+                startSpin();
+            }
         });
 
+        spinBtn.addEventListener("click", startSpin);
         drawWheel();
     </script>
 </body>
