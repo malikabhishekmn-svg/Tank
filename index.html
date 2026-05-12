@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Mystery Spin</title>
+    <title>Ultimate Fixed Mystery Spin</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -20,7 +20,7 @@
             align-items: center;
             min-height: 100vh;
             background: radial-gradient(circle, #1a1a3a 0%, #050510 100%);
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: white;
             overflow: hidden;
         }
@@ -31,8 +31,8 @@
             position: relative;
             width: 480px;
             height: 480px;
-            margin-bottom: 30px;
-            border: 8px solid rgba(255, 255, 255, 0.05);
+            margin: 0 auto 30px;
+            border: 10px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px var(--neon-blue);
         }
@@ -46,13 +46,14 @@
             height: 55px;
             background: var(--neon-pink);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 30;
+            z-index: 100;
             filter: drop-shadow(0 0 15px var(--neon-pink));
         }
 
         canvas {
             border-radius: 50%;
             transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);
+            display: block;
         }
 
         #spinBtn {
@@ -69,7 +70,7 @@
             text-transform: uppercase;
         }
 
-        #spinBtn:hover {
+        #spinBtn:hover:not(:disabled) {
             transform: scale(1.05);
             box-shadow: 0 0 40px var(--neon-blue);
         }
@@ -77,18 +78,12 @@
         #spinBtn:disabled { background: #333; cursor: not-allowed; opacity: 0.6; }
 
         .hint { margin-top: 15px; color: rgba(255,255,255,0.5); font-size: 0.9rem; }
-
-        /* SweetAlert Custom Styles */
-        .swal2-popup-custom {
-            border-radius: 20px !important;
-            border: 2px solid var(--neon-blue) !important;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue);">LUCKY WHEEL</h1>
+        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue); margin-top: 0;">LUCKY WHEEL</h1>
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="480" height="480"></canvas>
@@ -97,6 +92,7 @@
         <p class="hint">Press <b>SPACE</b> to Spin!</p>
     </div>
 
+    <!-- Sounds -->
     <audio id="spinSound" src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3"></audio>
     <audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3"></audio>
 
@@ -107,15 +103,16 @@
         const spinSound = document.getElementById("spinSound");
         const winSound = document.getElementById("winSound");
 
-        // 1. Items ටික mix කරලා තියෙන්නේ (Randomly ordered)
+        // --- Items Configuration ---
+        // Best Prize එක Index 3 (එක එන්නේ නැහැ)
         const items = [
-            { label: "Try Again", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
-            { label: "Pro Prize 1", image: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
-            { label: "No Luck", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
-            { label: "Best Prize", image: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
-            { label: "Another Chance", image: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" },
-            { label: "Pro Prize 2", image: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
-            { label: "No Chance", image: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" }
+            { label: "Chance 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "chance" },
+            { label: "Pro Prize 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
+            { label: "No Luck", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "bad" },
+            { label: "BEST PRIZE", imgUrl: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "Chance 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "chance" },
+            { label: "Pro Prize 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
+            { label: "No Chance", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "bad" }
         ];
 
         const size = items.length;
@@ -123,20 +120,27 @@
         let currentRotation = 0;
         let canSpin = true;
 
-        // Image Loading
-        const loadedImages = items.map(item => {
+        // Image Loading Logic
+        let imagesLoaded = 0;
+        const imgs = [];
+        items.forEach((item, i) => {
             const img = new Image();
-            img.src = item.image;
-            img.onload = drawWheel;
-            return img;
+            img.src = item.imgUrl;
+            img.onload = () => {
+                imagesLoaded++;
+                if (imagesLoaded === size) drawWheel();
+            };
+            imgs[i] = img;
         });
 
+        // අඳින විදිය (Images නැතත් text එක හරි පේන්න හැදුවා)
         function drawWheel() {
             ctx.clearRect(0, 0, 480, 480);
-            items.forEach((item, i) => {
+            for (let i = 0; i < size; i++) {
                 const angle = i * arc;
+                
                 ctx.beginPath();
-                ctx.fillStyle = item.color;
+                ctx.fillStyle = items[i].color;
                 ctx.moveTo(240, 240);
                 ctx.arc(240, 240, 235, angle, angle + arc);
                 ctx.lineTo(240, 240);
@@ -147,12 +151,17 @@
                 ctx.save();
                 ctx.translate(240, 240);
                 ctx.rotate(angle + arc / 2);
-                ctx.drawImage(loadedImages[i], 140, -20, 45, 45);
+                
+                // Draw Image if loaded
+                if (imagesLoaded === size) {
+                    ctx.drawImage(imgs[i], 140, -20, 45, 45);
+                }
+
                 ctx.fillStyle = "white";
                 ctx.font = "bold 15px Arial";
-                ctx.fillText(item.label, 65, 10);
+                ctx.fillText(items[i].label, 65, 10);
                 ctx.restore();
-            });
+            }
         }
 
         const startSpin = () => {
@@ -162,22 +171,25 @@
             spinSound.currentTime = 0;
             spinSound.play();
 
-            // Logic: Best Prize (Index 3) කවදාවත් එන්නේ නැහැ.
-            // Pro prizes (Index 1, 5) එන්නේ 2% chance එකකින්.
+            // --- RIGGED CALCULATION ---
             let stopIndex;
             const rand = Math.random() * 100;
-            if (rand < 2) {
+
+            if (rand < 2) { 
+                // 2% Chance for Pro Prizes (1 or 5)
                 stopIndex = Math.random() > 0.5 ? 1 : 5;
             } else {
-                // Common items: 0, 2, 4, 6
-                const commons = [0, 2, 4, 6];
-                stopIndex = commons[Math.floor(Math.random() * commons.length)];
+                // Other indices: 0, 2, 4, 6 (Except 3 - Best Prize)
+                const options = [0, 2, 4, 6];
+                stopIndex = options[Math.floor(Math.random() * options.length)];
             }
 
+            // Calculation to align with pointer at top
             const extraDegree = (size - stopIndex) * arc - (arc / 2);
-            const totalRotation = (Math.PI * 2 * 12) + extraDegree; 
+            // 12 full rotations + target
+            const rotationValue = (Math.PI * 2 * 12) + extraDegree; 
             
-            currentRotation += totalRotation;
+            currentRotation += rotationValue;
             canvas.style.transform = `rotate(${currentRotation}rad)`;
 
             setTimeout(() => {
@@ -185,38 +197,48 @@
                 spinBtn.disabled = false;
                 winSound.play();
 
-                const wonItem = items[stopIndex];
+                const won = items[stopIndex];
                 
-                // 3. Popup with Animation inside
+                // Results Popup
                 Swal.fire({
-                    title: `<span style="color:${wonItem.color}">${wonItem.label}</span>`,
+                    title: `<span style="color:${won.color}">${won.label}</span>`,
                     html: `
-                        <div class="animate__animated animate__zoomInDown">
-                            <img src="${wonItem.image}" width="100">
-                            <p style="margin-top:20px">${wonItem.type === 'common' ? 'Aww.. Try again machan!' : 'WHOA! You are lucky!'}</p>
+                        <div class="animate__animated animate__zoomIn">
+                            <img src="${won.imgUrl}" width="80" style="margin-bottom:15px">
+                            <p style="font-size:1.1rem">${getResultMsg(won.type)}</p>
                         </div>
                     `,
                     background: '#0a0a1a',
                     color: '#fff',
-                    showClass: { popup: 'animate__animated animate__backInUp' },
-                    hideClass: { popup: 'animate__animated animate__backOutDown' },
-                    customClass: { popup: 'swal2-popup-custom' },
-                    confirmButtonText: 'COOL!',
-                    confirmButtonColor: var(--neon-blue)
+                    showClass: { popup: 'animate__animated animate__jackInTheBox' },
+                    hideClass: { popup: 'animate__animated animate__zoomOut' },
+                    confirmButtonText: 'Try Again',
+                    confirmButtonColor: '#00f2fe'
                 });
-            }, 6000);
+            }, 6500);
         };
 
-        // 2. Space bar event listener
+        function getResultMsg(type) {
+            if (type === 'rare') return "OMG! You're super lucky machan! 🎉";
+            if (type === 'bad') return "Aiyo.. No luck today. Try again! 😅";
+            return "Not bad! You got another chance. 🔥";
+        }
+
+        // Space bar
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
-                e.preventDefault(); // Page එක scroll වෙන එක නවත්තන්න
+                e.preventDefault();
                 startSpin();
             }
         });
 
         spinBtn.addEventListener("click", startSpin);
-        drawWheel();
+
+        // Fallback: Images load වෙන්න පරක්කු වුණොත් wheel එක ඇඳලා පෙන්නන්න
+        setTimeout(() => {
+            if (imagesLoaded < size) drawWheel();
+        }, 1000);
+
     </script>
 </body>
 </html>
