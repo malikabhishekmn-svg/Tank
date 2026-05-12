@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rigged Pro Wheel</title>
+    <title>Fixed Rigged Wheel</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -20,7 +20,7 @@
             align-items: center;
             min-height: 100vh;
             background: radial-gradient(circle, #1a1a3a 0%, #050510 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             color: white;
             overflow: hidden;
         }
@@ -32,7 +32,7 @@
             width: 480px;
             height: 480px;
             margin: 0 auto 30px;
-            border: 10px solid rgba(255, 255, 255, 0.05);
+            border: 10px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px var(--neon-blue);
         }
@@ -51,9 +51,9 @@
         }
 
         canvas {
+            display: block;
             border-radius: 50%;
             transition: transform 7s cubic-bezier(0.15, 0, 0.1, 1);
-            display: block;
         }
 
         #spinBtn {
@@ -70,20 +70,14 @@
             text-transform: uppercase;
         }
 
-        #spinBtn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px var(--neon-blue);
-        }
-
-        #spinBtn:disabled { background: #333; cursor: not-allowed; opacity: 0.6; }
-
-        .hint { margin-top: 15px; color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+        #spinBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .hint { margin-top: 15px; color: rgba(255,255,255,0.4); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue);">ULTIMATE SPIN</h1>
+        <h1 style="letter-spacing: 5px; text-shadow: 0 0 10px var(--neon-blue);">LUCKY SPIN</h1>
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="480" height="480"></canvas>
@@ -102,15 +96,14 @@
         const spinSound = document.getElementById("spinSound");
         const winSound = document.getElementById("winSound");
 
-        // --- Items Configuration ---
         const items = [
-            { label: "Oops!", img: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
-            { label: "Pro Prize 1", img: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
-            { label: "Try Again", img: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
-            { label: "BEST PRIZE", img: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
-            { label: "No Luck", img: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" },
-            { label: "Pro Prize 2", img: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
-            { label: "Chance!", img: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" }
+            { label: "Oops!", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
+            { label: "Pro Prize 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
+            { label: "Try Again", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
+            { label: "BEST PRIZE", imgUrl: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
+            { label: "No Luck", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" },
+            { label: "Pro Prize 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
+            { label: "Chance!", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" }
         ];
 
         const size = items.length;
@@ -118,11 +111,20 @@
         let currentRotation = 0;
         let canSpin = true;
 
-        // Image Preloading
-        const imgs = items.map(item => {
+        // --- Image Loading Security ---
+        let imagesLoaded = 0;
+        const imgs = items.map((item, i) => {
             const img = new Image();
-            img.src = item.img;
-            img.onload = drawWheel;
+            img.crossOrigin = "anonymous";
+            img.src = item.imgUrl;
+            img.onload = () => {
+                imagesLoaded++;
+                drawWheel(); // ඇඳීම පටන් ගන්න එක image එකක් load වුණත්
+            };
+            img.onerror = () => {
+                imagesLoaded++; // Error වුණත් skip කරලා අඳින්න ගන්නවා
+                drawWheel();
+            };
             return img;
         });
 
@@ -130,6 +132,8 @@
             ctx.clearRect(0, 0, 480, 480);
             items.forEach((item, i) => {
                 const angle = i * arc;
+                
+                // Segment
                 ctx.beginPath();
                 ctx.fillStyle = item.color;
                 ctx.moveTo(240, 240);
@@ -139,13 +143,20 @@
                 ctx.strokeStyle = "rgba(255,255,255,0.1)";
                 ctx.stroke();
 
+                // Text & Icon
                 ctx.save();
                 ctx.translate(240, 240);
                 ctx.rotate(angle + arc / 2);
-                ctx.drawImage(imgs[i], 145, -20, 40, 40);
+                
+                // Icon ඇඳීම (Image එක තිබ්බොත් විතරයි)
+                if (imgs[i].complete && imgs[i].naturalWidth !== 0) {
+                    ctx.drawImage(imgs[i], 145, -20, 40, 40);
+                }
+
                 ctx.fillStyle = "white";
                 ctx.font = "bold 14px Arial";
-                ctx.fillText(item.label, 70, 10);
+                ctx.textAlign = "right";
+                ctx.fillText(item.label, 130, 10);
                 ctx.restore();
             });
         }
@@ -161,23 +172,19 @@
             let stopIndex;
             const luck = Math.random() * 100;
 
-            if (luck < 1) { 
-                // 1% Chance for Pro Prizes (Super Rare)
+            if (luck < 1) { // 1% chance for Pro Prize
                 stopIndex = Math.random() > 0.5 ? 1 : 5;
-            } else {
-                // 99% Chance for Common (0, 2, 4, 6)
-                // Index 3 (Best Prize) is completely skipped.
-                const commonIndices = [0, 2, 4, 6];
-                stopIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)];
+            } else { // 99% chance for Common
+                const commons = [0, 2, 4, 6];
+                stopIndex = commons[Math.floor(Math.random() * commons.length)];
             }
 
-            // Calculate rotation to stop exactly at the pointer (top)
-            // The canvas rotation starts from 3 o'clock, so we adjust by -90 degrees (PI/2)
+            // Calculation to fix the 3 o'clock start issue
             const rotationToTop = (3 * Math.PI) / 2; 
             const segmentCenter = (stopIndex * arc) + (arc / 2);
             const finalAngle = rotationToTop - segmentCenter;
             
-            const totalSpins = (Math.PI * 2 * 10); // 10 full rounds
+            const totalSpins = (Math.PI * 2 * 12); 
             currentRotation += totalSpins + finalAngle - (currentRotation % (Math.PI * 2));
             
             canvas.style.transform = `rotate(${currentRotation}rad)`;
@@ -186,21 +193,15 @@
                 canSpin = true;
                 spinBtn.disabled = false;
                 winSound.play();
-
-                const res = items[stopIndex];
                 
+                const res = items[stopIndex];
                 Swal.fire({
                     title: `<span style="color:${res.color}">${res.label}</span>`,
-                    html: `
-                        <div class="animate__animated animate__bounceIn">
-                            <img src="${res.img}" width="80" style="margin-bottom:15px">
-                            <p>${res.type === 'rare' ? 'PISSU KORA! You won a Pro Prize! 🏆' : 'Oops.. Adath na machan! Try again. 💀'}</p>
-                        </div>
-                    `,
+                    html: `<div class="animate__animated animate__bounceIn">
+                           <img src="${res.imgUrl}" width="80"><p>${res.type === 'rare' ? '🏆 UNBELIEVABLE! PRO WIN!' : '💀 Oops! Better luck next time!'}</p>
+                           </div>`,
                     background: '#0a0a1a',
                     color: '#fff',
-                    showClass: { popup: 'animate__animated animate__zoomInDown' },
-                    confirmButtonText: 'Try Again',
                     confirmButtonColor: var(--neon-blue)
                 });
             }, 7200);
@@ -208,7 +209,9 @@
 
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); startSpin(); } });
         spinBtn.addEventListener("click", startSpin);
-        drawWheel();
+        
+        // Final fallback: Image එකක්වත් load නොවුණත් තත්පරේකින් wheel එක අඳින්න
+        setTimeout(drawWheel, 1000);
     </script>
 </body>
 </html>
