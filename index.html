@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Rigged Wheel</title>
+    <title>Fixed No-Image Rigged Wheel</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -20,7 +20,7 @@
             align-items: center;
             min-height: 100vh;
             background: radial-gradient(circle, #1a1a3a 0%, #050510 100%);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             color: white;
             overflow: hidden;
         }
@@ -32,9 +32,9 @@
             width: 480px;
             height: 480px;
             margin: 0 auto 30px;
-            border: 10px solid rgba(255, 255, 255, 0.1);
+            border: 12px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px var(--neon-blue);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), 0 0 20px var(--neon-blue);
         }
 
         .pointer {
@@ -43,7 +43,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 45px;
-            height: 55px;
+            height: 60px;
             background: var(--neon-pink);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
             z-index: 100;
@@ -60,12 +60,12 @@
             background: linear-gradient(45deg, var(--neon-blue), #4facfe);
             border: none;
             padding: 18px 60px;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 900;
             color: white;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 5px 25px rgba(0, 242, 254, 0.4);
+            box-shadow: 0 5px 25px rgba(0, 242, 254, 0.5);
             transition: 0.3s;
             text-transform: uppercase;
         }
@@ -96,14 +96,15 @@
         const spinSound = document.getElementById("spinSound");
         const winSound = document.getElementById("winSound");
 
+        // --- Items Configuration ---
         const items = [
-            { label: "Oops!", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#e74c3c", type: "common" },
-            { label: "Pro Prize 1", imgUrl: "https://cdn-icons-png.flaticon.com/128/2933/2933116.png", color: "#00f2fe", type: "rare" },
-            { label: "Try Again", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#34495e", type: "common" },
-            { label: "BEST PRIZE", imgUrl: "https://cdn-icons-png.flaticon.com/128/614/614131.png", color: "#FFD700", type: "impossible" },
-            { label: "No Luck", imgUrl: "https://cdn-icons-png.flaticon.com/128/1828/1828843.png", color: "#c0392b", type: "common" },
-            { label: "Pro Prize 2", imgUrl: "https://cdn-icons-png.flaticon.com/128/9024/9024621.png", color: "#4facfe", type: "rare" },
-            { label: "Chance!", imgUrl: "https://cdn-icons-png.flaticon.com/128/1046/1046714.png", color: "#2c3e50", type: "common" }
+            { label: "OOPPS!", color: "#e74c3c", type: "bad" },
+            { label: "PRO PRIZE 1", color: "#00f2fe", type: "rare" },
+            { label: "TRY AGAIN", color: "#34495e", type: "bad" },
+            { label: "BEST PRIZE", color: "#FFD700", type: "impossible" },
+            { label: "NO LUCK!", color: "#c0392b", type: "bad" },
+            { label: "PRO PRIZE 2", color: "#4facfe", type: "rare" },
+            { label: "CHANCE!", color: "#2c3e50", type: "chance" }
         ];
 
         const size = items.length;
@@ -111,54 +112,43 @@
         let currentRotation = 0;
         let canSpin = true;
 
-        // --- Image Loading Security ---
-        let imagesLoaded = 0;
-        const imgs = items.map((item, i) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = item.imgUrl;
-            img.onload = () => {
-                imagesLoaded++;
-                drawWheel(); // ඇඳීම පටන් ගන්න එක image එකක් load වුණත්
-            };
-            img.onerror = () => {
-                imagesLoaded++; // Error වුණත් skip කරලා අඳින්න ගන්නවා
-                drawWheel();
-            };
-            return img;
-        });
-
         function drawWheel() {
             ctx.clearRect(0, 0, 480, 480);
             items.forEach((item, i) => {
                 const angle = i * arc;
                 
-                // Segment
+                // Segment background
                 ctx.beginPath();
                 ctx.fillStyle = item.color;
                 ctx.moveTo(240, 240);
                 ctx.arc(240, 240, 235, angle, angle + arc);
                 ctx.lineTo(240, 240);
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                
+                // Border lines
+                ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Text & Icon
+                // Text
                 ctx.save();
                 ctx.translate(240, 240);
                 ctx.rotate(angle + arc / 2);
-                
-                // Icon ඇඳීම (Image එක තිබ්බොත් විතරයි)
-                if (imgs[i].complete && imgs[i].naturalWidth !== 0) {
-                    ctx.drawImage(imgs[i], 145, -20, 40, 40);
-                }
-
                 ctx.fillStyle = "white";
-                ctx.font = "bold 14px Arial";
+                ctx.font = "bold 18px Arial";
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = "black";
                 ctx.textAlign = "right";
-                ctx.fillText(item.label, 130, 10);
+                // මෙතන පෙළ මැදට කරනවා
+                ctx.fillText(item.label, 210, 10);
                 ctx.restore();
             });
+
+            // මැද රවුම (Center Pin)
+            ctx.beginPath();
+            ctx.fillStyle = "white";
+            ctx.arc(240, 240, 15, 0, 2 * Math.PI);
+            ctx.fill();
         }
 
         const startSpin = () => {
@@ -174,9 +164,10 @@
 
             if (luck < 1) { // 1% chance for Pro Prize
                 stopIndex = Math.random() > 0.5 ? 1 : 5;
-            } else { // 99% chance for Common
-                const commons = [0, 2, 4, 6];
-                stopIndex = commons[Math.floor(Math.random() * commons.length)];
+            } else { 
+                // 99% Chance for others (Excluding BEST PRIZE at Index 3)
+                const options = [0, 2, 4, 6];
+                stopIndex = options[Math.floor(Math.random() * options.length)];
             }
 
             // Calculation to fix the 3 o'clock start issue
@@ -198,11 +189,11 @@
                 Swal.fire({
                     title: `<span style="color:${res.color}">${res.label}</span>`,
                     html: `<div class="animate__animated animate__bounceIn">
-                           <img src="${res.imgUrl}" width="80"><p>${res.type === 'rare' ? '🏆 UNBELIEVABLE! PRO WIN!' : '💀 Oops! Better luck next time!'}</p>
+                           <p style="font-size: 1.5rem;">${res.type === 'rare' ? '🏆 UNBELIEVABLE! YOU WON!' : '💀 Oops! Adath Na!'}</p>
                            </div>`,
                     background: '#0a0a1a',
                     color: '#fff',
-                    confirmButtonColor: var(--neon-blue)
+                    confirmButtonColor: '#00f2fe'
                 });
             }, 7200);
         };
@@ -210,8 +201,9 @@
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); startSpin(); } });
         spinBtn.addEventListener("click", startSpin);
         
-        // Final fallback: Image එකක්වත් load නොවුණත් තත්පරේකින් wheel එක අඳින්න
-        setTimeout(drawWheel, 1000);
+        // පටන් ගන්න කොටම අඳින්න
+        drawWheel();
+
     </script>
 </body>
 </html>
