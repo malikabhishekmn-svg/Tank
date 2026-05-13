@@ -298,7 +298,7 @@ canvas#wheel {
 <div class="header">
   <h1>🎰 Lucky Spin!</h1>
   <p>Spin කරලා ඔයාගේ prize ගන්න!</p>
-  <span class="key-hint">⎵ SPACE = SPIN / CLOSE</span>
+  <span class="key-hint">TAP SPACE</span>
 </div>
 
 <div class="wheel-section">
@@ -342,14 +342,14 @@ for(let i=0;i<80;i++){
 
 // ── Prizes ──
 const SEGMENTS = [
-  { id:'best',   label:'BEST\nPRICE!', emoji:'⌚', prize:'Smart Watch', color:'#ffd700', textColor:'#1a0800', weight:0 },
-  { id:'normal', label:'Normal\nPrice', emoji:'🎁', prize:'Normal Price', color:'#7c3aed', textColor:'#fff', weight:2 },
-  { id:'oops',   label:'Oops!', emoji:'😅', prize:'Oops...', color:'#be185d', textColor:'#fff', weight:2 },
-  { id:'chance', label:'One More\nChance!', emoji:'🍀', prize:'Try Again!', color:'#0369a1', textColor:'#fff', weight:1 },
-  { id:'normal2',label:'Normal\nPrice', emoji:'🍫', prize:'Chocolate Box', color:'#92400e', textColor:'#fff', weight:2 },
-  { id:'oops2',  label:'Oops!', emoji:'🙈', prize:'Better Luck!', color:'#9f1239', textColor:'#fff', weight:2 },
-  { id:'chance2',label:'One More\nChance!', emoji:'⭐', prize:'Spin Again!', color:'#0c4a6e', textColor:'#fff', weight:1 },
-  { id:'oops3',  label:'Oops!', emoji:'😬', prize:'Try Again!', color:'#881337', textColor:'#fff', weight:2 },
+  { id:'best',   label:'BEST\nPRICE!', emoji:'🎁', prize:'Smart Watch', color:'#FFF400', textColor:'#1a0800', weight:0 },
+  { id:'normal', label:'Normal\nPrice', emoji:'🎉', prize:'Normal Price', color:'#0800FF', textColor:'#fff', weight:2 },
+  { id:'oops',   label:'Oops!', emoji:'😣', prize:'Oops...', color:'#FF0000', textColor:'#fff', weight:2 },
+  { id:'chance', label:'One More\nChance!', emoji:'😎', prize:'One More Chance!', color:'#00FF04', textColor:'#000000', weight:2 },
+  { id:'normal2',label:'Normal\nPrice', emoji:'🎉', prize:'Chocolate Box', color:'#0800FF', textColor:'#fff', weight:2 },
+  { id:'oops2',  label:'Oops!', emoji:'😣', prize:'Better Luck!', color:'#FF0000', textColor:'#fff', weight:2 },
+  { id:'chance2',label:'One More\nChance!', emoji:'😎', prize:'One More Chance!', color:'#00FF04', textColor:'#000000', weight:2 },
+  { id:'oops3',  label:'Oops!', emoji:'😣', prize:'Try Again!', color:'#FF0000', textColor:'#fff', weight:2 },
 ];
 
 const N = SEGMENTS.length;
@@ -358,13 +358,13 @@ const ARC = (2 * Math.PI) / N;
 // Popup content
 const POPUP_DATA = {
   best: { type:'win', title:'YOU WON! 🏆', msg:'OMG!! Smart Watch won!! 🎉', btn:'Collect Prize! 🎁' },
-  normal:  { type:'win', title:'Normal Price! 🎁', msg:'Congrats! Chocolate Box ඔයාට! 🍫 \nContact us to claim your prize!', btn:'Claim Now! 🎊' },
-  normal2: { type:'win', title:'Normal Price! 🎁', msg:'Lucky! Chocolate Box + Bima Package ඔයාගේ!\nContact us now!', btn:'Claim Now! 🎊' },
-  oops:  { type:'oops', title:'Oops! 😅', msg:'Ayyo... this time luck matured wuna nehe! \nBut don\'t give up machan — spin again! 🎰', btn:'Try Again! 🔄' },
-  oops2: { type:'oops', title:'Oops! 🙈', msg:'Noooo! So close yet so far! 😬\nLuck is warming up — one more spin! 🎯', btn:'Spin Again! 🔄' },
-  oops3: { type:'oops', title:'Oops! 😬', msg:'E... meya luck nadda? 😭\nBut hey — third time lucky! Give it one more! 🍀', btn:'One More! 🎰' },
-  chance: { type:'chance', title:'One More Chance! 🍀', msg:'Lucky! Universe is giving you ANOTHER chance!\nSpin again — your prize is waiting! ✨', btn:'SPIN AGAIN! 🚀' },
-  chance2:{ type:'chance', title:'Extra Chance! ⭐', msg:'Wow! Bonus spin unlocked! 🌟\nFate is on your side today — go again! 🎯', btn:'Let\'s Go! 💫' },
+  normal:  { type:'win', title:'Normal Price! 🎁', msg:'ඔන්න ඔයා චොකලට් එක දින්නා ✨', btn:'Claim Now! 🎊' },
+  normal2: { type:'win', title:'Normal Price! 🎁', msg:'ඔන්න ඔයා පැනක් දින්නා 🖊', btn:'Claim Now! 🎊' },
+  oops:  { type:'oops', title:'Oops! 😅', msg:'අයියෝ, මේපාරනම් Miss උනා නේ 🎰', btn:'ඊලග පාර බලමු ☺' },
+  oops2: { type:'oops', title:'Oops! 🙈', msg:'අයියෝ, මේපාරනම් Miss උනා නේ 🎰', btn:'ඊලග පාර බලමු ☺' },
+  oops3: { type:'oops', title:'Oops! 😬', msg:'අයියෝ, මේපාරනම් Miss උනා නේ 🎰', btn:'ඊලග පාර බලමු ☺' },
+  chance: { type:'chance', title:'One More Chance! 🍀', msg:'ඔන්න ඔයාට තව Chance එකක් අවා 🎇', btn:'ආයේ SPIN කරමු 😁' },
+  chance2:{ type:'chance', title:'Extra Chance! ⭐', msg:'ඔන්න ඔයාට තව Chance එකක් අවා 🎇', btn:'ආයේ SPIN කරමු 😁' },
 };
 
 // ── Canvas draw ──
@@ -429,10 +429,7 @@ drawWheel(0);
 // ── Legend ──
 const legendEl = document.getElementById('legend');
 [
-  { color:'#ffd700', label:'⌚ Best Price (Watch) — Ultra Rare!' },
-  { color:'#7c3aed', label:'🎁 Normal Price (Chocolate / Bima)' },
-  { color:'#be185d', label:'😅 Oops — Better luck next time' },
-  { color:'#0369a1', label:'🍀 One More Chance — Spin again!' },
+ 
 ].forEach(l => {
   const div = document.createElement('div');
   div.className = 'legend-item';
